@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "PackageInstaller": {
+      "commandName": "Project"
+    }
+  }
+}
