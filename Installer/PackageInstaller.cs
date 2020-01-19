@@ -6,54 +6,45 @@ namespace Installer
     public class PackageInstaller
     {
         /*
-         * Main method to run and test PackageInstaller class
+         * Main method to test PackageInstaller class
          */
         static void Main(string[] args)
         {
             string[] inputArr = { "A: B", "B: ", "C: A" };
 
-            PackageInstaller PI = new PackageInstaller(inputArr);
-
-            PI.PrintPkgList();
+            try
+            {
+                Queue<Package> installationOrder = GenerateInstallationOrder(inputArr);
+                Console.WriteLine();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
-
-
 
 
 
         /*
-         * Actual class def starts here
+         * Define
          */
-
-        List<string[]> pkgList;
-
-        public PackageInstaller(string[] packages)
+        public string[] GenerateInstallationOrder(string[] pkgsToInstall)
         {
-            pkgList = new List<string[]>();
+            List<Package> pkgList = new List<Package>();
 
-            foreach (string s in packages)
+            for (int i = 0; i < pkgsToInstall.Length; i++)
             {
-                pkgList.Add(s.Split(": "));
+                string[] pkgStr = pkgsToInstall[i].Split(": ");
+
+                if (pkgStr.Length == 2)
+                {
+                    Package pkg = new Package(pkgStr[0], pkgStr[1]);
+                    pkgList.Add(pkg);
+                }
+                else
+                {
+                    throw new Exception("Input package improperly formatted at index " + i + ". Package name: " + newPackages[i]);
+                }
             }
-        }
-
-        public void SupplyNewPackages(string[] packages)
-        {
-            pkgList = new List<string[]>();
-
-            foreach (string s in packages)
-            {
-                pkgList.Add(s.Split(": "));
-            }
-        }
-
-        public void PrintPkgList()
-        {
-            foreach (string[] s in pkgList)
-            {
-                Console.WriteLine(s[0] + " | " + s[1]);
-            }
-        }
-
     }
 }
