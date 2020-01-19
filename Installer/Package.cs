@@ -3,26 +3,31 @@ using System.Collections.Generic;
 
 namespace Installer
 {
+    /*
+     * Package class
+     * Contains methods for creating, comparing, and printing a Package with at most a single dependency
+     */
+
     class Package : IEquatable<Package>
     {
         public string Name { get; private set; }
-        public List<string> Dependencies { get; private set; }
+        public string Dependency { get; private set; }
 
-        public Package(string pkgName, string singleDependency)
+        public Package(string pkgName)
         {
             Name = pkgName;
-            Dependencies.Add(singleDependency);
+            Dependency = "";
         }
 
-        public Package(string pkgName, List<string> pkgDependencies)
+        public Package(string pkgName, string pkgDependency)
         {
             Name = pkgName;
-            Dependencies = pkgDependencies;
+            Dependency = pkgDependency;
         }
 
-        public void UpdateDependencies(List<string> newDependencies)
+        public void UpdateDependency(string newDependency)
         {
-            Dependencies = newDependencies;
+            Dependency = newDependency;
         }
 
         public override bool Equals(Object obj)
@@ -31,6 +36,9 @@ namespace Installer
             return Equals(obj as Package);
         }
 
+        /*
+         * Compares Packages based solely on Package Name
+         */
         public bool Equals(Package otherPkg)
         {
             return otherPkg != null && Name.Equals(otherPkg.Name);
@@ -39,6 +47,11 @@ namespace Installer
         public override int GetHashCode()
         {
             return Name.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return "Package name: " + Name + "\n\tDepencency: " + Dependency;
         }
     }
 }

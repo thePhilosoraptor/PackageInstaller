@@ -10,12 +10,13 @@ namespace Installer
          */
         static void Main(string[] args)
         {
-            string[] inputArr = { "A: B", "B: ", "C: A" };
+            string[] inputArr = { "A: B", "B: ", "C: A"};
 
             try
             {
-                Queue<Package> installationOrder = GenerateInstallationOrder(inputArr);
-                Console.WriteLine();
+                PackageInstaller PI = new PackageInstaller(inputArr);
+
+                PI.PrintPackages();
             }
             catch (Exception e)
             {
@@ -25,17 +26,35 @@ namespace Installer
 
 
 
+
         /*
-         * Define
+         * PackageInstaller class def.
+         *      Defines a class that creates a list of Package objects to install and orders them so that any Packages' dependency is always installed
+         *      before the Package itself
          */
-        public string[] GenerateInstallationOrder(string[] pkgsToInstall)
+
+        readonly List<Package> pkgList;
+
+        public PackageInstaller()
         {
-            List<Package> pkgList = new List<Package>();
+            pkgList = new List<Package>();
+        }
 
-            for (int i = 0; i < pkgsToInstall.Length; i++)
+        public PackageInstaller(string[] packages) 
+            : this()
+        {
+            CreatePackageList(packages);
+        }
+
+        /*
+         * Generates a List of Packages from an array of strings representing Packages in "<Package name>: <Installation dependencies>" format
+         * Throws Exception if any input strings are improperly formatted
+         */
+        public void CreatePackageList(string[] packages)
+        {
+            for (int i = 0; i < packages.Length; i++)
             {
-                string[] pkgStr = pkgsToInstall[i].Split(": ");
-
+                string[] pkgStr = packages[i].Split(": ");
                 if (pkgStr.Length == 2)
                 {
                     Package pkg = new Package(pkgStr[0], pkgStr[1]);
@@ -43,8 +62,25 @@ namespace Installer
                 }
                 else
                 {
-                    throw new Exception("Input package improperly formatted at index " + i + ". Package name: " + newPackages[i]);
+                    throw new Exception("Input package improperly formatted at index " + i + ". Package name: " + packages[i]);
                 }
             }
+        }
+
+        /*
+         * Define
+         */
+        public string[] GenerateInstallationOrder(string[] pkgsToInstall)
+        {
+            return null;
+        }
+
+        public void PrintPackages()
+        {
+            foreach (Package p in pkgList)
+            {
+                Console.WriteLine(p.ToString());
+            }
+        }
     }
 }
