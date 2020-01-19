@@ -6,21 +6,26 @@ namespace Installer
     public class PackageInstaller
     {
         /*
-         * Main method to test PackageInstaller class
+         * Main method to run PackageInstaller class
+         *      Input: string array of Packages and their dependencies
          */
         static void Main(string[] args)
         {
-            string[] inputArr = { "A: B", "B: ", "C: A"};
+            string[] inputArr = { "A: B", "B: C", "C: D", "D: "};
 
             try
             {
                 PackageInstaller PI = new PackageInstaller(inputArr);
 
+                Console.WriteLine("Packages and dependencies:");
                 PI.PrintPackages();
 
                 PI.OrderPackages();
 
-                PI.PrintPackages();
+                //PI.PrintPackages();
+
+                Console.WriteLine("Installation order:");
+                Console.WriteLine(PI.OutputOrder());
             }
             catch (Exception e)
             {
@@ -29,14 +34,11 @@ namespace Installer
         }
 
 
-
-
         /*
          * PackageInstaller class def.
-         *      Defines a class that creates a list of Package objects to install and orders them so that any Packages' dependency is always installed
-         *      before the Package itself
+         *      Defines a class that creates a list of Package objects to install and orders them so 
+         *      that any Packages' dependency is always installed before the Package itself
          */
-
         private List<Package> pkgList;
 
         public PackageInstaller()
@@ -45,21 +47,28 @@ namespace Installer
         }
 
         public PackageInstaller(string[] packages)
+            : this()
         {
             CreatePackageList(packages);
         }
 
         /*
-         * Creates a List of Packages from an array of strings representing Packages in "<Package name>: <Installation dependencies>" format
+         * Creates a List of Package objects from an array of strings representing Packages in "<Package name>: <Installation dependencies>" format
          * Throws Exception if any input strings are improperly formatted
          */
         public void CreatePackageList(string[] packages)
         {
+            if (packages == null)
+            {
+                return;
+            }
+
             pkgList = new List<Package>(packages.Length);
 
             for (int i = 0; i < packages.Length; i++)
             {
                 string[] pkgStr = packages[i].Split(": ");
+
                 if (pkgStr.Length == 2)
                 {
                     Package pkg = new Package(pkgStr[0], pkgStr[1]);
@@ -73,16 +82,18 @@ namespace Installer
         }
 
         /*
-         * Orders pkgList such that, for all Packages dependent on another Package, the other Package is listed first.
-         * Does not allow for cycles in Package dependencies.
+         * Orders pkgList such that, for all Packages, a Package’s dependency will always precede that Package
+         *      Throws Exception upon discovery of a cycle in Package dependencies
+         *      Throws Exception if a Package is dependent upon a Package that is not on the install list
          */
         public void OrderPackages()
         {
             List<Package> orderedPkgs = new List<Package>(pkgList.Count);
             List<Package> unorderedPkgs = pkgList;
 
-            LinkedList<Package> pkgChain = new LinkedList<Package>();
+            LinkedList<Package> pkgChain = new LinkedList<Package>();   // Creates a chain to keep track of visited Packages
 
+            // Loop until there are no more unordered Packages
             while (unorderedPkgs.Count > 0)
             {
                 // If the chain is currently empty, add the first unordered Package to it
@@ -92,10 +103,10 @@ namespace Installer
                 }
 
                 // If dependency Package for first Package in pkgChain is already in pkgChain,
-                //      This indicates that a cycle has occurred, throws an Exception
+                //      This indicates that a cycle has occurred thus input is invalid; throws an Exception
                 if (FindPackageInListByName(pkgChain, pkgChain.First.Value.Dependency) != null)
                 {
-                    throw new Exception("Dependency cycle found. Invalid input.");
+                    throw new Exception("Dependency cycle found. Invalid input. Cycle occurred at:\n" + pkgChain.First.Value);
                 }
 
                 // If there is no dependency for the first Package in chain,
@@ -124,16 +135,16 @@ namespace Installer
 
                     pkgChain.Clear();
                 }
-                // Else, add dependency Package for first Package in pkgChain to front of pkgChain and loop
+                // Else, add the dependency Package for the first Package in pkgChain to front of pkgChain and loop
                 else
                 {
                     Package nextPkg = FindPackageInListByName(unorderedPkgs, pkgChain.First.Value.Dependency);
 
-                    // The next Package being null indicates that the dependency Package does not exist and thus can never be satisfied,
+                    // The next Package being null indicates that the dependency Package does not exist and thus input is invalid,
                     //      Throws Exception in response
                     if (nextPkg == null)
                     {
-                        throw new Exception("Package not found, please add Package " + pkgChain.First.Value.Dependency + " and try again.");
+                        throw new Exception("Package not found, please add Package \"" + pkgChain.First.Value.Dependency + "\" and try again.");
                     }
                     else
                     {
@@ -145,22 +156,10 @@ namespace Installer
             pkgList = orderedPkgs;
         }
 
-        private Package FindPackageInListByName(List<Package> list, string name)
+        // Searches IEnumerable object for Package of given name and returns it, null if not found
+        private Package FindPackageInListByName(IEnumerable<Package> list, string name)
         {
             foreach (Package p in list)
-            {
-                if (p.Name == name)
-                {
-                    return p;
-                }
-            }
-
-            return null;
-        }
-
-        private Package FindPackageInListByName(LinkedList<Package> llist, string name)
-        {
-            foreach (Package p in llist)
             {
                 if (p.Name == name)
                 {
@@ -177,6 +176,24 @@ namespace Installer
             {
                 Console.WriteLine(p.ToString());
             }
+
+            Console.WriteLine();
+        }
+
+        // Formats pkgList for output
+        public string OutputOrder()
+        {
+            string packageOrder = "";
+
+            int i;
+            for (i = 0; i < pkgList.Count - 1; i++)
+            {
+                packageOrder += pkgList[i].Name + ", ";
+            }
+
+            packageOrder += pkgList[i].Name;
+
+            return packageOrder;
         }
     }
 }

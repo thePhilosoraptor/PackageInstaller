@@ -5,13 +5,16 @@ namespace Installer
 {
     /*
      * Package class
-     * Contains methods for creating, comparing, and printing a Package with at most a single dependency
+     *      readonly property: Name (string)
+     *      readonly property: Dependency (string)
+     *      
+     * Contains methods for creating and printing a Package with at most a single dependency
      */
 
     class Package
     {
-        public string Name { get; private set; }
-        public string Dependency { get; private set; }
+        public string Name { get; }
+        public string Dependency { get; }
 
         public Package(string pkgName)
         {
@@ -23,11 +26,6 @@ namespace Installer
         {
             Name = pkgName;
             Dependency = pkgDependency;
-        }
-
-        public void UpdateDependency(string newDependency)
-        {
-            Dependency = newDependency;
         }
 
         public override string ToString()
