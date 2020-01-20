@@ -24,30 +24,37 @@ namespace Installer
          */
         public static string GeneratePackageInstallationOrder(string[] packages, bool verbose)
         {
-            List<Package> packageList = CreatePackageList(packages);
-
-            if (verbose)
+            if (packages != null)
             {
-                Console.WriteLine("Packages in input order:");
-                PrintPackages(packageList);
+                List<Package> packageList = CreatePackageList(packages);
+
+                if (verbose)
+                {
+                    Console.WriteLine("Packages in input order:");
+                    PrintPackages(packageList);
+                }
+
+                packageList = OrderPackages(packageList);
+
+                if (verbose)
+                {
+                    Console.WriteLine("Packages in installation order:");
+                    PrintPackages(packageList);
+                }
+
+                string installationOrder = ConvertPackageListToString(packageList);
+
+                if (verbose)
+                {
+                    Console.WriteLine("Order to install packages:\n" + installationOrder);
+                }
+
+                return installationOrder;
             }
-
-            packageList = OrderPackages(packageList);
-
-            if (verbose)
+            else
             {
-                Console.WriteLine("Packages in installation order:");
-                PrintPackages(packageList);
+                throw new Exception("Invalid input. Input can not be null.");
             }
-
-            string installationOrder = ConvertPackageListToString(packageList);
-
-            if (verbose)
-            {
-                Console.WriteLine("Order to install packages:\n" + installationOrder);
-            }
-
-            return installationOrder;
         }
 
         /*
@@ -93,7 +100,7 @@ namespace Installer
                     }
                     else
                     {
-                        throw new Exception("Invalid input. Package #" + (i + 1) + " improperly formatted. Package name: \"" + packages[i] + "\"");
+                        throw new Exception("Invalid input. Package #" + (i + 1) + " improperly formatted. \nPackage name: \"" + packages[i] + "\"");
                     }
                 }
 
@@ -182,7 +189,8 @@ namespace Installer
                     //      Throws Exception in response
                     if (nextPackage == null)
                     {
-                        throw new Exception("Package not found, please add Package \"" + packageChain.First.Value.Dependency + "\" and try again.");
+                        throw new Exception("Invalid input. Dependency of package \"" + packageChain.First.Value.Name +
+                                                "\" not found. \nMissing package: \"" + packageChain.First.Value.Dependency + "\"");
                     }
                     else
                     {

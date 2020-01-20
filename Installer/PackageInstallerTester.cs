@@ -61,7 +61,12 @@ namespace Installer
 
                 try
                 {
+                    // Using the verbose setting to run tests
                     string installationOrder = PackageInstaller.GeneratePackageInstallationOrder(tests[i], true);
+
+                    // string installationOrder = PackageInstaller.GeneratePackageInstallationOrder(tests[i]);
+                    // Console.WriteLine(installationOrder);
+
                 }
                 catch (Exception e)
                 {
