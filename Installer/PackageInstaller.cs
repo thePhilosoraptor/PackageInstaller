@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Installer
 {
-    /*
-    * PackageInstaller static class def.
+    /* PackageInstaller static class def.
     *      Public methods:
     *           GeneratePackageInstallationOrder(string[] packages)
     *           GeneratePackageInstallationOrder(string[] packages, bool verbose)
@@ -12,14 +12,15 @@ namespace Installer
     public static class PackageInstaller
     {
 
-        /*
-         * Summary:
+        /* Summary:
          *      A static method to generate a string representing a valid installation ordering of packages considering their dependencies
          * Params:
-         *      string[] packages:  an array of strings representing package names and their installation dependencies in "<Package name>: <dependency>" format
-         *      bool verbose:       a switch for printing extra information to console
+         *      string[]:   an array of strings representing package names and their installation dependencies in "<Package name>: <dependency>" format
+         *      bool:       a switch for printing extra, intermediate information to console
          * Returns:
-         *      string with the package names in a valid installation order, separated by commas
+         *      string: string with the package names in a valid installation order, separated by commas
+         * Throws:
+         *      Exception with a helpful message
          */
         public static string GeneratePackageInstallationOrder(string[] packages, bool verbose)
         {
@@ -57,39 +58,62 @@ namespace Installer
             return GeneratePackageInstallationOrder(packages, false);
         }
 
-        /*
-         * Creates a List of Package objects from an array of strings representing Packages in "<Package name>: <Installation dependencies>" format
-         * Throws Exception if any input strings are improperly formatted
+        /* Summary:
+         *      Creates a List of Package objects from an array of strings 
+         * Params:
+         *      string[]: an array of strings representing Packages in "<Package name>: <Installation dependency>" format
+         * Returns:
+         *      A List of Package objects created from the array
+         * Throws:
+         *      Exception if any input strings are improperly formatted
+         *      Exception if duplicate Package name found
          */
         private static List<Package> CreatePackageList(string[] packages)
         {
-            List<Package> packageList = new List<Package>(packages.Length);
-
             if (packages != null)
             {
+                List<Package> packageList = new List<Package>(packages.Length);
+
                 for (int i = 0; i < packages.Length; i++)
                 {
-                    string[] pkgStr = packages[i].Split(": ");
+                    string[] packageStr = packages[i].Split(": ");
 
-                    if (pkgStr.Length == 2)
+                    if (packageStr.Length == 2)
                     {
-                        Package pkg = new Package(pkgStr[0], pkgStr[1]);
-                        packageList.Add(pkg);
+                        Package package = new Package(packageStr[0], packageStr[1]);
+
+                        if (FindPackageInListByName(packageList, package.Name) == null)
+                        {
+                            packageList.Add(package);
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid input. Duplicate package name found: \"" + package.Name + "\"");
+                        }
                     }
                     else
                     {
-                        throw new Exception("Input package improperly formatted at index " + i + ". Package name: " + packages[i]);
+                        throw new Exception("Invalid input. Package #" + (i + 1) + " improperly formatted. Package name: \"" + packages[i] + "\"");
                     }
                 }
-            }
 
-            return packageList;
+                return packageList;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        /*
-         * Orders List of Packages such that, for all Packages, a Package’s dependency will always precede that Package
-         *      Throws Exception upon discovery of a cycle in Package dependencies
-         *      Throws Exception if a Package is dependent upon a Package that is not on the install list
+        /* Summary:
+         *      Orders List of Packages such that, for all Packages, a Package’s dependency will always precede that Package
+         * Params:
+         *      List<Package>: packages to be ordered
+         * Returns:
+         *      List of Package objects in valid order
+         * Throws:
+         *      Exception upon discovery of a cycle in Package dependencies
+         *      Exception if a Package is dependent upon a Package that is not on the install list
          */
         private static List<Package> OrderPackages(List<Package> packageList)
         {
@@ -111,7 +135,14 @@ namespace Installer
                 //      This indicates that a cycle has occurred thus input is invalid; throws an Exception
                 if (FindPackageInListByName(packageChain, packageChain.First.Value.Dependency) != null)
                 {
-                    throw new Exception("Dependency cycle found. Invalid input. Cycle occurred at:\n" + packageChain.First.Value);
+                    string errorMessage = "Invalid input. Dependency cycle found: \n";
+
+                    foreach(Package package in packageChain.Reverse())
+                    { 
+                        errorMessage += package.ToString() + "\n";
+                    }
+
+                    throw new Exception(errorMessage);
                 }
 
                 // If there is no dependency for the first Package in chain,
@@ -143,17 +174,17 @@ namespace Installer
                 // Else, add the dependency Package for the first Package in packageChain to front of packageChain and loop
                 else
                 {
-                    Package nextPkg = FindPackageInListByName(unorderedPackages, packageChain.First.Value.Dependency);
+                    Package nextPackage = FindPackageInListByName(unorderedPackages, packageChain.First.Value.Dependency);
 
                     // The next Package being null indicates that the dependency Package does not exist and thus input is invalid,
                     //      Throws Exception in response
-                    if (nextPkg == null)
+                    if (nextPackage == null)
                     {
                         throw new Exception("Package not found, please add Package \"" + packageChain.First.Value.Dependency + "\" and try again.");
                     }
                     else
                     {
-                        packageChain.AddFirst(nextPkg);
+                        packageChain.AddFirst(nextPackage);
                     }
                 }
             }
@@ -161,7 +192,14 @@ namespace Installer
             return orderedPackages;
         }
 
-        // Searches IEnumerable object for Package of given name and returns it, null if not found
+        /* Summary:
+         *      Searches IEnumerable object for Package of given name
+         * Params:
+         *      IEnumerable<Package>:   the list to be searched
+         *      string:                 name of package to search for
+         * Returns:
+         *      The package of matching name, null if not found
+         */
         private static Package FindPackageInListByName(IEnumerable<Package> list, string name)
         {
             foreach (Package p in list)
@@ -175,7 +213,13 @@ namespace Installer
             return null;
         }
 
-        // Formats List of Packages for output
+        /* Sumary:
+         *      Formats List of Packages for output
+         * Params:
+         *      List<Package>: packages to be formatted
+         * Returns:
+         *      string of package names separated by commas
+         */
         private static string ConvertPackageListToString(List<Package> packageList)
         {
             string packageOrder = "";
@@ -194,6 +238,11 @@ namespace Installer
             return packageOrder;
         }
 
+        /* Summary:
+         *      Prints detailed information on a List of Packages to console
+         * Params:
+         *      List<Package>: packages to print
+         */
         private static void PrintPackages(List<Package> packageList)
         {
             foreach (Package p in packageList)
