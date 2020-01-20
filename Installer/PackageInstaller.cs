@@ -139,8 +139,10 @@ namespace Installer
 
                     foreach(Package package in packageChain.Reverse())
                     { 
-                        errorMessage += package.ToString() + "\n";
+                        errorMessage += package.Name + " -> ";
                     }
+
+                    errorMessage += packageChain.First.Value.Dependency;
 
                     throw new Exception(errorMessage);
                 }

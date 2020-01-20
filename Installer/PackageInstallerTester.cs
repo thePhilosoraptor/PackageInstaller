@@ -48,6 +48,10 @@ namespace Installer
                 new string[] { "A: B", "A: " },
                 new string[] { "A: B", "A: B", "B: " },
                 new string[] { "A: B", "A: C", "B: ", "C: " },
+                new string[] { "KittenService: CamelCaser", "CamelCaser: " },
+    //      30
+                new string[] { "KittenService: ", "Leetmeme: Cyberportal", "Cyberportal: Ice", "CamelCaser: KittenService", "Fraudstream: Leetmeme", "Ice: "},
+                new string[] { "KittenService: ", "Leetmeme: Cyberportal", "Cyberportal: Ice", "CamelCaser: KittenService", "Fraudstream: ", "Ice: Leetmeme"}
             };
 
 
